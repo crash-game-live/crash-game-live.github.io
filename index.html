@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Crash Casino Game Demo – Free Browser Simulation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="description"
+    content="Play a free Crash casino game demo in your browser. Test strategies, auto cashout, and balance management without risking real money."
+  />
+  <meta property="og:title" content="Crash Casino Game Demo – Free Browser Simulation" />
+  <meta
+    property="og:description"
+    content="Interactive Crash game demo with auto cashout and balance tracking. No registration, no real-money bets."
+  />
+  <meta property="og:type" content="website" />
+
+  <style>
+    :root {
+      --bg: #050816;
+      --bg-elevated: #0b1020;
+      --accent: #ffb800;
+      --accent-soft: rgba(255, 184, 0, 0.12);
+      --accent-strong: #ffdf66;
+      --danger: #ff4466;
+      --text: #f5f5f8;
+      --text-soft: #a0a3b1;
+      --border: #20263a;
+      --green: #38d996;
+      --font-main: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-main);
+      background: radial-gradient(circle at top, #161a35 0, #050816 55%, #02030a 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .kicker {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--accent-strong);
+      opacity: 0.9;
+    }
+
+    h1 {
+      font-size: clamp(1.9rem, 3vw, 2.4rem);
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    .lead {
+      max-width: 640px;
+      font-size: 0.98rem;
+      color: var(--text-soft);
+      line-height: 1.6;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1.15fr);
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    @media (max-width: 860px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      background: rgba(5, 7, 20, 0.9);
+      border-radius: 18px;
+      padding: 18px 18px 20px;
+      border: 1px solid var(--border);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(16px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 12px;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+    }
+
+    /* Crash graph area */
+    .graph {
+      position: relative;
+      background: radial-gradient(circle at top, #20274d 0, #050816 70%);
+      border-radius: 16px;
+      border: 1px solid rgba(91, 111, 180, 0.5);
+      padding: 16px 14px 12px;
+      overflow: hidden;
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .graph-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--text-soft);
+    }
+
+    .status-pill {
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .status-idle {
+      color: var(--text-soft);
+    }
+    .status-running {
+      color: var(--accent-strong);
+      border-color: rgba(255, 184, 0, 0.6);
+    }
+    .status-crashed {
+      color: var(--danger);
+      border-color: rgba(255, 68, 102, 0.7);
+    }
+    .status-cashed {
+      color: var(--green);
+      border-color: rgba(56, 217, 150, 0.7);
+    }
+
+    .multiplier-display {
+      font-size: 2.8rem;
+      font-weight: 700;
+      padding-top: 8px;
+      padding-bottom: 4px;
+      text-shadow: 0 0 24px rgba(255, 184, 0, 0.7);
+    }
+
+    .multiplier-display.crashed {
+      color: var(--danger);
+      text-shadow: 0 0 24px rgba(255, 68, 102, 0.8);
+    }
+
+    .multiplier-display.cashed {
+      color: var(--green);
+      text-shadow: 0 0 24px rgba(56, 217, 150, 0.8);
+    }
+
+    .axis {
+      width: 100%;
+      height: 80px;
+      margin-top: 4px;
+      border-radius: 12px;
+      background: linear-gradient(
+        to right,
+        rgba(255, 184, 0, 0.1),
+        rgba(255, 184, 0, 0.45)
+      );
+      position: relative;
+      overflow: hidden;
+    }
+
+    .axis-line {
+      position: absolute;
+      bottom: 18px;
+      left: 10px;
+      right: 10px;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .axis-labels {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .curve {
+      position: absolute;
+      bottom: 18px;
+      left: 10px;
+      right: 10px;
+      height: 2px;
+      transform-origin: left center;
+      transform: scaleX(0);
+      background: linear-gradient(
+        to right,
+        var(--accent-strong),
+        #ffffff
+      );
+      box-shadow: 0 0 14px rgba(255, 184, 0, 0.9);
+      transition: transform 0.06s linear;
+    }
+
+    .curve.crashed {
+      background: linear-gradient(to right, var(--danger), #ff9bb0);
+      box-shadow: 0 0 14px rgba(255, 68, 102, 0.9);
+    }
+
+    .curve.cashed {
+      background: linear-gradient(to right, var(--green), #ffffff);
+      box-shadow: 0 0 14px rgba(56, 217, 150, 0.9);
+    }
+
+    /* Controls */
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+      align-items: flex-end;
+    }
+
+    @media (max-width: 600px) {
+      .controls {
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      }
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: var(--text-soft);
+    }
+
+    .field label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .field small {
+      font-size: 0.7rem;
+      opacity: 0.8;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 9px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(9, 11, 25, 0.9);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--accent-strong);
+      box-shadow: 0 0 0 1px rgba(255, 184, 0, 0.35);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 9px 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.08s ease, box-shadow 0.08s ease,
+        background 0.08s ease, color 0.08s ease;
+      white-space: nowrap;
+    }
+
+    .btn:active {
+      transform: translateY(1px) scale(0.99);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #ffdf99);
+      color: #160b00;
+      box-shadow: 0 8px 18px rgba(255, 184, 0, 0.35);
+    }
+
+    .btn-primary[disabled] {
+      background: #4a4a4a;
+      color: #d1d1d1;
+      box-shadow: none;
+      cursor: default;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: var(--text-soft);
+    }
+
+    .btn-ghost.danger {
+      border-color: rgba(255, 68, 102, 0.6);
+      color: var(--danger);
+    }
+
+    .btn-ghost:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    .btn-pill {
+      font-size: 0.78rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(5, 7, 20, 0.9);
+      color: var(--text-soft);
+    }
+
+    /* Sidebar / info */
+    .sidebar-card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .balance-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.95rem;
+    }
+
+    .balance-amount {
+      font-size: 1.15rem;
+      font-weight: 600;
+    }
+
+    .balance-amount.positive {
+      color: var(--green);
+    }
+
+    .balance-amount.negative {
+      color: var(--danger);
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .pill {
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px dashed rgba(255, 255, 255, 0.12);
+      color: var(--text-soft);
+    }
+
+    .history {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.16);
+      max-height: 180px;
+      overflow-y: auto;
+      font-size: 0.78rem;
+      color: var(--text-soft);
+    }
+
+    .history-entry {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 5px 0;
+      gap: 8px;
+    }
+
+    .history-entry span {
+      white-space: nowrap;
+    }
+
+    .history-multi {
+      font-weight: 600;
+    }
+
+    .history-win {
+      color: var(--green);
+    }
+
+    .history-loss {
+      color: var(--danger);
+    }
+
+    .history-tag {
+      opacity: 0.75;
+      font-size: 0.72rem;
+    }
+
+    /* Text sections */
+    .content {
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+      gap: 24px;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 880px) {
+      .content {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      margin-bottom: 10px;
+      margin-top: 6px;
+    }
+
+    h3 {
+      font-size: 1rem;
+      margin-bottom: 6px;
+      margin-top: 10px;
+    }
+
+    p {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: var(--text-soft);
+      margin-bottom: 8px;
+    }
+
+    ul {
+      list-style: none;
+      padding-left: 0;
+      margin: 4px 0 10px;
+    }
+
+    li {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: var(--text-soft);
+      position: relative;
+      padding-left: 18px;
+    }
+
+    li::before {
+      content: "•";
+      position: absolute;
+      left: 3px;
+      color: var(--accent-strong);
+    }
+
+    code {
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
+        Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.8rem;
+      background: rgba(7, 10, 30, 0.9);
+      padding: 2px 5px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 14px 16px 18px;
+      font-size: 0.76rem;
+      color: var(--text-soft);
+      text-align: center;
+      background: radial-gradient(circle at top, #13142b 0, #050816 65%);
+    }
+
+    footer a {
+      text-decoration: underline;
+      text-decoration-style: dotted;
+      text-underline-offset: 3px;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <span class="kicker">Browser Demo • No Real Money</span>
+      <h1>Crash Casino Game Demo</h1>
+      <p class="lead">
+        This page lets you play a free <strong>Crash game simulation</strong> in your browser.
+        Adjust your bet, set auto cashout, and see how different risk profiles behave
+        &mdash; without deposits, accounts, or real-money wagers.
+      </p>
+    </header>
+
+    <section class="layout">
+      <!-- GAME AREA -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title">
+            Crash Round
+            <span class="badge">
+              <span class="dot"></span>
+              Live Demo
+            </span>
+          </div>
+          <div id="status-pill" class="status-pill status-idle">Waiting for next round</div>
+        </div>
+
+        <div class="graph">
+          <div class="graph-top">
+            <span>Current multiplier</span>
+            <span id="target-label">Crash point: ?x</span>
+          </div>
+          <div id="multiplier" class="multiplier-display">1.00x</div>
+
+          <div class="axis">
+            <div class="axis-line"></div>
+            <div id="curve" class="curve"></div>
+            <div class="axis-labels">
+              <span>1.0x</span>
+              <span>2.0x</span>
+              <span>5.0x</span>
+              <span>10.0x</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="field">
+            <label for="bet-amount">
+              Bet amount
+              <small id="max-bet-label">Max: 100</small>
+            </label>
+            <input
+              id="bet-amount"
+              type="number"
+              min="1"
+              step="1"
+              value="10"
+            />
+          </div>
+
+          <div class="field">
+            <label for="auto-cashout">
+              Auto cashout (x)
+              <small>Optional</small>
+            </label>
+            <input
+              id="auto-cashout"
+              type="number"
+              min="1.01"
+              step="0.01"
+              placeholder="e.g. 2.00"
+            />
+          </div>
+        </div>
+
+        <div class="controls" style="margin-top: 8px;">
+          <div class="field">
+            <label>Quick bet</label>
+            <div class="pill-row">
+              <button type="button" class="btn-pill" data-bet="5">+5</button>
+              <button type="button" class="btn-pill" data-bet="10">+10</button>
+              <button type="button" class="btn-pill" data-bet="25">+25</button>
+              <button type="button" class="btn-pill" data-bet="50">+50</button>
+              <button type="button" class="btn-pill" data-bet="100">Max</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Round controls</label>
+            <div class="btn-row">
+              <button id="btn-start" class="btn btn-primary">Start round</button>
+              <button id="btn-cashout" class="btn btn-ghost danger" disabled>Cash out</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SIDEBAR -->
+      <aside class="card sidebar-card">
+        <div>
+          <div class="balance-line">
+            <span>Demo balance</span>
+            <span id="balance" class="balance-amount">$1,000.00</span>
+          </div>
+          <p style="margin-top: 4px;">
+            Balance is virtual and resets on page refresh. Use it to test bets, not to chase losses.
+          </p>
+        </div>
+
+        <div>
+          <h3>Round summary</h3>
+          <p id="round-summary">
+            Hit <strong>Start round</strong> to launch the rocket. Cash out before it explodes to lock in
+            your multiplier.
+          </p>
+        </div>
+
+        <div>
+          <h3>Recent results</h3>
+          <div id="history" class="history"></div>
+        </div>
+
+        <div>
+          <h3>What this is (and isn’t)</h3>
+          <ul>
+            <li>Free demo to visualise how Crash rounds behave.</li>
+            <li>No registration, deposits, or real prizes.</li>
+            <li>Good for testing risk tolerance and basic stop-loss ideas.</li>
+          </ul>
+          <p>
+            Real casino games add house edge, friction, and emotions. This simplified model can’t predict
+            real outcomes and shouldn’t be treated as financial advice.
+          </p>
+        </div>
+      </aside>
+    </section>
+
+    <!-- TEXT CONTENT FOR SEO / EXPLANATION -->
+    <section class="content" aria-label="How the crash demo works">
+      <article>
+        <h2>How the Crash demo works</h2>
+        <p>
+          Crash is a fast-paced multiplayer game where a multiplier starts at <strong>1.00x</strong> and
+          climbs until it suddenly “crashes”. If you cash out before the crash, your bet is multiplied by
+          the current value. If you wait too long, the round ends and the stake is lost.
+        </p>
+        <p>
+          This browser demo reproduces that core loop. Each simulated round picks a random crash point
+          between roughly <strong>1.00x and 10.00x</strong>. The multiplier then grows in small steps
+          several times per second. Once the multiplier reaches the hidden crash value, the round ends.
+        </p>
+
+        <h3>Controls you can tweak</h3>
+        <ul>
+          <li><strong>Bet amount:</strong> how much of your virtual balance you risk in this round.</li>
+          <li>
+            <strong>Auto cashout:</strong> set a target like <code>2.00x</code>. The game will cash out
+            automatically when the multiplier reaches or passes this point (if it hasn’t crashed yet).
+          </li>
+          <li>
+            <strong>Manual cashout:</strong> if you don’t set auto cashout, you can press
+            <em>Cash out</em> at any time while the round is running.
+          </li>
+        </ul>
+        <p>
+          The history panel on the right shows your last few rounds: final multiplier, win/loss and
+          amount credited or lost. You can quickly see how “greedy” decisions compare to early exits.
+        </p>
+
+        <h3>Strategy sandbox, not a predictor</h3>
+        <p>
+          Many players use Crash-style games to test simple rules: always exit at 2x, leave after three
+          wins in a row, or stop playing once a target profit is reached. This demo is perfect for that:
+          you can run short sessions, write down the results, and see how your rules behave over time.
+        </p>
+        <p>
+          However, no system can remove volatility or guarantee profit. Each round is independent, and
+          streaks of low multipliers are normal. Treat this tool as an educational sandbox, not as a way
+          to “beat” gambling.
+        </p>
+      </article>
+
+      <article>
+        <h2>Using this page in your own project</h2>
+        <p>
+          You can host this file on GitHub Pages or any static hosting provider. The entire demo is built
+          with plain <code>HTML</code>, <code>CSS</code>, and <code>JavaScript</code> – no external
+          libraries, servers, or databases.
+        </p>
+
+        <h3>Quick start on GitHub Pages</h3>
+        <ul>
+          <li>Create a new public repository (for example, <code>crash-demo</code>).</li>
+          <li>Add this file as <code>index.html</code> in the root of the repository.</li>
+          <li>
+            In repository settings, enable <strong>GitHub Pages</strong> for the <code>main</code> branch.
+          </li>
+          <li>After a short build, your demo will be live at <code>https://user.github.io/crash-demo/</code>.</li>
+        </ul>
+
+        <h3>Customization ideas</h3>
+        <ul>
+          <li>Change colors, typography, or layout to match your brand.</li>
+          <li>Expose the random crash values more clearly for debugging or education.</li>
+          <li>Record round history in <code>localStorage</code> to track longer sessions.</li>
+          <li>Add keyboard shortcuts for starting rounds and cashing out.</li>
+        </ul>
+
+        <p>
+          For compliance, always make it clear that the page uses virtual credits only and doesn’t support
+          real-money gambling. If you embed this demo near casino reviews, separate it visually from any
+          licensed operator content and add a responsible gaming note.
+        </p>
+      </article>
+    </section>
+  </main>
+
+  <footer>
+    This Crash game demo is for <strong>educational and entertainment purposes only</strong>.
+    It does not process payments or offer real-money prizes. Always gamble responsibly and follow
+    your local laws.
+  </footer>
+
+  <script>
+    (function () {
+      // Basic crash logic for demo
+      const balanceEl = document.getElementById("balance");
+      const betInput = document.getElementById("bet-amount");
+      const autoInput = document.getElementById("auto-cashout");
+      const startBtn = document.getElementById("btn-start");
+      const cashoutBtn = document.getElementById("btn-cashout");
+      const multiplierEl = document.getElementById("multiplier");
+      const targetLabel = document.getElementById("target-label");
+      const maxBetLabel = document.getElementById("max-bet-label");
+      const statusPill = document.getElementById("status-pill");
+      const curveEl = document.getElementById("curve");
+      const historyEl = document.getElementById("history");
+      const summaryEl = document.getElementById("round-summary");
+
+      let balance = 1000;
+      let state = "idle"; // idle | running | crashed | cashed
+      let currentMultiplier = 1.0;
+      let crashPoint = null;
+      let bet = 0;
+      let intervalId = null;
+      let startTime = null;
+
+      function formatMoney(value) {
+        return "$" + value.toFixed(2);
+      }
+
+      function updateBalanceDisplay() {
+        balanceEl.textContent = formatMoney(balance);
+        balanceEl.classList.remove("positive", "negative");
+        if (balance > 1000) {
+          balanceEl.classList.add("positive");
+        } else if (balance < 1000) {
+          balanceEl.classList.add("negative");
+        }
+
+        const max = Math.max(1, Math.floor(balance));
+        maxBetLabel.textContent = "Max: " + max;
+      }
+
+      function setStatus(label, type) {
+        statusPill.textContent = label;
+        statusPill.className = "status-pill " + type;
+      }
+
+      function resetRoundVisuals() {
+        currentMultiplier = 1.0;
+        multiplierEl.textContent = currentMultiplier.toFixed(2) + "x";
+        multiplierEl.classList.remove("crashed", "cashed");
+        targetLabel.textContent = "Crash point: ?x";
+        curveEl.style.transform = "scaleX(0)";
+        curveEl.classList.remove("crashed", "cashed");
+      }
+
+      function pushHistory(multi, winAmount, didCashout) {
+        const entry = document.createElement("div");
+        entry.className = "history-entry";
+        const multiplierSpan = document.createElement("span");
+        multiplierSpan.className = "history-multi";
+        multiplierSpan.textContent = multi.toFixed(2) + "x";
+
+        const resultSpan = document.createElement("span");
+        if (winAmount > 0 && didCashout) {
+          resultSpan.className = "history-win";
+          resultSpan.textContent = "+" + formatMoney(winAmount);
+        } else {
+          resultSpan.className = "history-loss";
+          resultSpan.textContent = "-" + formatMoney(bet);
+        }
+
+        const tagSpan = document.createElement("span");
+        tagSpan.className = "history-tag";
+        tagSpan.textContent = didCashout ? "Cashed out" : "Crashed";
+
+        entry.appendChild(multiplierSpan);
+        entry.appendChild(resultSpan);
+        entry.appendChild(tagSpan);
+
+        // Prepend
+        historyEl.insertBefore(entry, historyEl.firstChild);
+
+        // Limit history length
+        const maxEntries = 50;
+        while (historyEl.children.length > maxEntries) {
+          historyEl.removeChild(historyEl.lastChild);
+        }
+      }
+
+      function startRound() {
+        if (state === "running") return;
+
+        let betValue = parseFloat(betInput.value);
+        if (!Number.isFinite(betValue) || betValue <= 0) {
+          alert("Enter a valid bet amount greater than zero.");
+          return;
+        }
+        const maxBet = Math.floor(balance);
+        if (betValue > maxBet) {
+          alert("Bet is larger than your available balance.");
+          return;
+        }
+
+        // Deduct bet
+        bet = Math.floor(betValue);
+        balance -= bet;
+        updateBalanceDisplay();
+
+        // Prepare random crash point (simple bounded model)
+        const minCrash = 1.0;
+        const maxCrash = 10.0;
+        crashPoint = minCrash + Math.random() * (maxCrash - minCrash);
+        crashPoint = Math.max(1.0, parseFloat(crashPoint.toFixed(2)));
+
+        state = "running";
+        setStatus("Round running…", "status-running");
+        resetRoundVisuals();
+        targetLabel.textContent = "Crash point: hidden";
+
+        // Buttons
+        startBtn.disabled = true;
+        cashoutBtn.disabled = false;
+
+        summaryEl.innerHTML =
+          "The round is live. Cash out before the hidden crash point to lock in profit.";
+
+        // Start animation
+        startTime = performance.now();
+        const maxMultiplierVisible = 10.0;
+
+        if (intervalId) clearInterval(intervalId);
+
+        intervalId = setInterval(() => {
+          if (state !== "running") return;
+
+          const elapsed = (performance.now() - startTime) / 1000;
+          // Exponential-like growth: grows faster the longer it runs
+          currentMultiplier = 1 + Math.pow(elapsed * 1.25, 1.6);
+          if (currentMultiplier < 1) currentMultiplier = 1;
+
+          const autoValue = parseFloat(autoInput.value);
+          const hasAuto = Number.isFinite(autoValue) && autoValue >= 1.01;
+
+          // Auto cashout
+          if (hasAuto && currentMultiplier >= autoValue && state === "running") {
+            doCashout(true);
+            return;
+          }
+
+          // Check crash
+          if (currentMultiplier >= crashPoint) {
+            doCrash();
+            return;
+          }
+
+          multiplierEl.textContent = currentMultiplier.toFixed(2) + "x";
+          const scale = Math.min(currentMultiplier / maxMultiplierVisible, 1);
+          curveEl.style.transform = "scaleX(" + scale + ")";
+        }, 60);
+      }
+
+      function doCashout(auto = false) {
+        if (state !== "running") return;
+
+        state = "cashed";
+        clearInterval(intervalId);
+        intervalId = null;
+
+        // Winnings
+        const win = bet * currentMultiplier;
+        const profit = win; // bet already deducted
+        balance += win;
+        updateBalanceDisplay();
+
+        multiplierEl.textContent = currentMultiplier.toFixed(2) + "x";
+        multiplierEl.classList.add("cashed");
+        curveEl.classList.add("cashed");
+
+        const maxMultiplierVisible = 10.0;
+        const scale = Math.min(currentMultiplier / maxMultiplierVisible, 1);
+        curveEl.style.transform = "scaleX(" + scale + ")";
+
+        setStatus("Cashed out at " + currentMultiplier.toFixed(2) + "x", "status-cashed");
+        summaryEl.innerHTML =
+          "You exited at <strong>" +
+          currentMultiplier.toFixed(2) +
+          "x</strong> and received <strong>" +
+          formatMoney(profit) +
+          "</strong> back to your demo balance.";
+
+        pushHistory(currentMultiplier, profit, true);
+
+        // Reset controls
+        bet = 0;
+        startBtn.disabled = false;
+        cashoutBtn.disabled = true;
+      }
+
+      function doCrash() {
+        if (state !== "running") return;
+
+        state = "crashed";
+        clearInterval(intervalId);
+        intervalId = null;
+
+        currentMultiplier = crashPoint;
+        multiplierEl.textContent = currentMultiplier.toFixed(2) + "x";
+        multiplierEl.classList.add("crashed");
+        curveEl.classList.add("crashed");
+
+        const maxMultiplierVisible = 10.0;
+        const scale = Math.min(currentMultiplier / maxMultiplierVisible, 1);
+        curveEl.style.transform = "scaleX(" + scale + ")";
+        targetLabel.textContent = "Crash point: " + crashPoint.toFixed(2) + "x";
+
+        setStatus("Crashed at " + crashPoint.toFixed(2) + "x", "status-crashed");
+        summaryEl.innerHTML =
+          "The rocket exploded at <strong>" +
+          crashPoint.toFixed(2) +
+          "x</strong>. Your stake for this round was lost.";
+
+        pushHistory(currentMultiplier, 0, false);
+
+        bet = 0;
+        startBtn.disabled = false;
+        cashoutBtn.disabled = true;
+      }
+
+      // Quick bet buttons
+      document.querySelectorAll(".btn-pill[data-bet]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const val = btn.getAttribute("data-bet");
+          if (val === "100") {
+            betInput.value = Math.floor(balance);
+          } else {
+            const add = parseInt(val, 10);
+            const current = parseFloat(betInput.value) || 0;
+            const max = Math.floor(balance);
+            betInput.value = Math.min(current + add, max);
+          }
+        });
+      });
+
+      startBtn.addEventListener("click", startRound);
+      cashoutBtn.addEventListener("click", () => doCashout(false));
+
+      // Initialize
+      updateBalanceDisplay();
+      resetRoundVisuals();
+      setStatus("Waiting for next round", "status-idle");
+    })();
+  </script>
+</body>
+</html>
